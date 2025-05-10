@@ -9,18 +9,27 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mrshabel/shbank/internal/config"
-	"github.com/mrshabel/shbank/internal/handlers"
-	log "github.com/mrshabel/shbank/internal/logger"
+	"github.com/mrshabel/sgbank/internal/config"
+	"github.com/mrshabel/sgbank/internal/db"
+	"github.com/mrshabel/sgbank/internal/handlers"
+	log "github.com/mrshabel/sgbank/internal/logger"
 )
 
 func main() {
-	router := gin.Default()
+	// setup configurations
 	cfg := config.New()
-
 	logger := log.New(cfg.Env)
 
+	// setup database
+	db, err := db.New(cfg.DatabaseURL, logger)
+	if err != nil {
+		logger.Error("Failed to connect to db", "error", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
 	// http server
+	router := gin.Default()
 	server := &http.Server{
 		Addr:    cfg.ServerAddr,
 		Handler: router,

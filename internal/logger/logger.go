@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/mrshabel/shbank/internal/config"
+	"github.com/mrshabel/sgbank/internal/config"
 )
 
 func New(env config.ENV) *slog.Logger {

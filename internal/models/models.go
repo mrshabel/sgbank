@@ -1,12 +1,16 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // user models
 
 // User represents a user entity in the application
 type User struct {
-	ID        string     `json:"id"`
+	ID        uuid.UUID  `json:"id"`
 	Email     string     `json:"email"`
 	CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
@@ -21,7 +25,7 @@ type CreateUser struct {
 
 // Account represents an account entity in the application
 type Account struct {
-	ID        string
+	ID        uuid.UUID
 	UserID    string
 	CreatedAt *time.Time
 	UpdatedAt *time.Time
@@ -56,7 +60,7 @@ type TransactionLine struct {
 
 // Transaction contains all transaction lines and relevant information about a transaction
 type Transaction struct {
-	ID        string
+	ID        uuid.UUID
 	Reference string
 	Lines     []TransactionLine
 	CreatedAt *time.Time
@@ -73,4 +77,10 @@ type CreateTransactionLine struct {
 // CreateTransaction holds the information needed to create a new transaction in the system. The transactions lines should be 2 or more
 type CreateTransaction struct {
 	Lines []CreateTransactionLine
+}
+
+// APIResponse is the standard application response for both success and error messages
+type APIResponse struct {
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }

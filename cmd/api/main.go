@@ -13,6 +13,7 @@ import (
 	"github.com/mrshabel/sgbank/internal/db"
 	"github.com/mrshabel/sgbank/internal/handlers"
 	log "github.com/mrshabel/sgbank/internal/logger"
+	"github.com/mrshabel/sgbank/internal/repository"
 )
 
 func main() {
@@ -37,8 +38,15 @@ func main() {
 
 	// register middlewares
 
+	// create repositories
+	userRepo := repository.NewUserRepository(db, logger)
+
+	// create handlers
+	userHandler := handlers.NewUserHandler(userRepo, logger)
+
 	// register handlers here
 	handlers.RegisterPingHandler(router, logger)
+	handlers.RegisterUserHandlers(userHandler, router, logger)
 
 	// start server in background
 	go func() {

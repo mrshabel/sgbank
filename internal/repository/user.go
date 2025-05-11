@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"github.com/mrshabel/sgbank/internal/models"
 )
 
@@ -26,7 +27,7 @@ func (r *UserRepository) GetTx(ctx context.Context) (tx *sql.Tx, err error) {
 }
 
 // CreateUser adds a new user to the database. This is a password-less user
-func (r *UserRepository) CreateUser(ctx context.Context, tx *sql.Tx, data *models.CreateUser) (*models.User, error) {
+func (r *UserRepository) CreateUser(ctx context.Context, data *models.CreateUser) (*models.User, error) {
 	query := `
 		INSERT INTO users (email)
 		VALUES ($1)
@@ -36,7 +37,6 @@ func (r *UserRepository) CreateUser(ctx context.Context, tx *sql.Tx, data *model
 	// retrieve user details
 	var user models.User
 	if err := r.db.QueryRowContext(ctx, query, data.Email).Scan(&user.ID, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 
@@ -44,12 +44,14 @@ func (r *UserRepository) CreateUser(ctx context.Context, tx *sql.Tx, data *model
 }
 
 // GetUserByID retrieves a user by their ID
-func (r *UserRepository) GetUserByID(ctx context.Context, tx *sql.Tx, id string) (*models.User, error) {
-	query := `SELECT * FROM users WHERE id = $1;`
-
+func (r *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
+	query := `
+	 SELECT id, email, created_at, updated_at FROM users
+	 WHERE id = ($1)
+	 `
+	r.logger.Debug("user id", "id", id.String())
 	var user models.User
 	if err := r.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 
@@ -57,12 +59,11 @@ func (r *UserRepository) GetUserByID(ctx context.Context, tx *sql.Tx, id string)
 }
 
 // GetUserByID retrieves a user by their email
-func (r *UserRepository) GetUserByEmail(ctx context.Context, tx *sql.Tx, email string) (*models.User, error) {
-	query := `SELECT * FROM users WHERE id = $1;`
+func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	query := `SELECT * FROM users WHERE email = ($1)`
 
 	var user models.User
 	if err := r.db.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 

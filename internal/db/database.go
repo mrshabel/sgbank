@@ -36,6 +36,7 @@ func New(connStr string, logger *slog.Logger) (*sql.DB, error) {
 		-- accounts --
 		CREATE TABLE IF NOT EXISTS accounts (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			account_number VARCHAR(12) UNIQUE NOT NULL,
 			user_id UUID NOT NULL REFERENCES users(id),
 			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

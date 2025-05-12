@@ -40,13 +40,16 @@ func main() {
 
 	// create repositories
 	userRepo := repository.NewUserRepository(db, logger)
+	accountRepo := repository.NewAccountRepository(db, logger)
 
 	// create handlers
 	userHandler := handlers.NewUserHandler(userRepo, logger)
+	accountHandler := handlers.NewAccountHandler(accountRepo, logger)
 
 	// register handlers here
 	handlers.RegisterPingHandler(router, logger)
 	handlers.RegisterUserHandlers(userHandler, router, logger)
+	handlers.RegisterAccountHandlers(accountHandler, router, logger)
 
 	// start server in background
 	go func() {

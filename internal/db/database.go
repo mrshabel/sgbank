@@ -33,6 +33,16 @@ func New(connStr string, logger *slog.Logger) (*sql.DB, error) {
 			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 		);
 
+		-- add default root user. skip if exists --
+		INSERT INTO users (id, email)
+		VALUES ('00000000-0000-0000-0000-000000000000', 'internal@sgbank.com')
+		ON CONFLICT (id) DO NOTHING;
+
+		-- add default root account. skip if exists --
+		INSERT INTO accounts (account_number, user_id)
+		VALUES ('0000000000', '00000000-0000-0000-0000-000000000000')
+		ON CONFLICT (account_number) DO NOTHING;
+
 		-- accounts --
 		CREATE TABLE IF NOT EXISTS accounts (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

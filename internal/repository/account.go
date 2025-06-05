@@ -43,7 +43,7 @@ func (r *AccountRepository) CreateAccount(ctx context.Context, data *models.Crea
 	return &account, nil
 }
 
-// GetAccountByID retrieves an non-deleted account by their ID
+// GetAccountByID retrieves a non-deleted account by their ID
 func (r *AccountRepository) GetAccountByID(ctx context.Context, id uuid.UUID) (*models.Account, error) {
 	query := `
 	 SELECT id, account_number, user_id, created_at, updated_at FROM accounts
@@ -55,6 +55,30 @@ func (r *AccountRepository) GetAccountByID(ctx context.Context, id uuid.UUID) (*
 	}
 
 	return &account, nil
+}
+
+// GetAccountByAcctNumbers retrieves all non-deleted accounts belonging associated with the given account numbers
+func (r *AccountRepository) GetAccountsByAcctNumbers(ctx context.Context, acctNums []string) ([]*models.Account, error) {
+	query := `
+	 SELECT id, account_number, user_id, created_at, updated_at FROM accounts
+	 WHERE deleted_at IS NULL AND account_number IN ($1)
+	 `
+
+	var accounts []*models.Account
+	rows, err := r.db.QueryContext(ctx, query, acctNums)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var account models.Account
+		if err := rows.Scan(&account.ID, &account.AccountNumber, &account.UserID, &account.CreatedAt, &account.UpdatedAt); err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, &account)
+	}
+
+	return accounts, nil
 }
 
 // GetAccountByUserId retrieves all non-deleted accounts belonging to a user

@@ -6,6 +6,12 @@ import (
 	"github.com/google/uuid"
 )
 
+// default account
+const (
+	RootAccount  string = "0000000000"
+	SystemUserID string = "00000000-0000-0000-0000-000000000000"
+)
+
 // user models
 
 // User represents a user entity in the application
@@ -47,6 +53,7 @@ type TransactionPurpose string
 const (
 	CREDIT TransactionPurpose = "credit"
 	DEBIT  TransactionPurpose = "debit"
+	// TODO: add support for deposits and withdrawals
 )
 
 // TransactionLine represents a single line of ledger entry in the system
@@ -69,7 +76,7 @@ type Transaction struct {
 
 // CreateTransactionLine represents the required fields needed to create a line of transaction
 type CreateTransactionLine struct {
-	AccountID     string
+	AccountID     uuid.UUID
 	TransactionID string
 	Purpose       TransactionPurpose
 	Amount        uint64
@@ -77,7 +84,8 @@ type CreateTransactionLine struct {
 
 // CreateTransaction holds the information needed to create a new transaction in the system. The transactions lines should be 2 or more
 type CreateTransaction struct {
-	Lines []CreateTransactionLine
+	Reference string
+	Lines     []CreateTransactionLine
 }
 
 // APIResponse is the standard application response for both success and error messages

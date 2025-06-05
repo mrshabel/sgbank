@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -32,8 +33,10 @@ func main() {
 	// http server
 	router := gin.Default()
 	server := &http.Server{
-		Addr:    cfg.ServerAddr,
-		Handler: router,
+		Addr:         cfg.ServerAddr,
+		Handler:      router,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	// register middlewares
@@ -41,15 +44,18 @@ func main() {
 	// create repositories
 	userRepo := repository.NewUserRepository(db, logger)
 	accountRepo := repository.NewAccountRepository(db, logger)
+	transactionRepo := repository.NewTransactionRepository(db, logger)
 
 	// create handlers
 	userHandler := handlers.NewUserHandler(userRepo, logger)
 	accountHandler := handlers.NewAccountHandler(accountRepo, logger)
+	transactionHandler := handlers.NewTransactionHandler(transactionRepo, accountRepo, logger)
 
 	// register handlers here
 	handlers.RegisterPingHandler(router, logger)
 	handlers.RegisterUserHandlers(userHandler, router, logger)
 	handlers.RegisterAccountHandlers(accountHandler, router, logger)
+	handlers.RegisterTransactionHandlers(transactionHandler, router, logger)
 
 	// start server in background
 	go func() {
@@ -61,6 +67,11 @@ func main() {
 	}()
 
 	// monitor signal interrupts
+	cleanup(server, logger)
+
+}
+
+func cleanup(server *http.Server, logger *slog.Logger) {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
 	// timeout graceful shutdown
